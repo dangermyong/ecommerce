@@ -1,18 +1,18 @@
 import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, Redirect } from 'react-router-dom'
 import Layout from '../core/Layout'
-import { signup } from '../auth/index'
+import { signin, authenticate } from '../auth/index'
 
-function Signup() {
+function Signin() {
   const [values, setValues] = useState({
-    name: '',
-    email: '',
-    password: '',
+    email: 'asdf1234@gmail.com',
+    password: 'asdf1234',
     error: '',
-    success: false,
+    loading: false,
+    redirectToReferrer: false,
   })
 
-  const {name, email, password, success, error } = values
+  const { email, password, loading, error, redirectToReferrer } = values
 
   const handleChange = name => event => {
     setValues({
@@ -24,28 +24,21 @@ function Signup() {
 
   const clickSubmit = event => {
     event.preventDefault()
-    setValues({...values, error: false})
-    signup({ name, email, password })
+    setValues({ ...values, error: false, loading: true })
+    signin({ email, password })
     .then(data => {
       if(data.error) {
-        setValues({...values, error: data.error, success: false})
+        setValues({ ...values, error: data.error, loading: false })
       } else {
-        setValues({...values, name: '', email: '', password:'',  error: '', success: true})
+        authenticate(data, () => {
+          setValues({ ...values, redirectToReferrer: true })
+        })
       }
     })
   }
 
-  const signUpForm = () => (
+  const signInForm = () => (
     <form>
-      <div className="form-group">
-        <label className='text-muted'>Name</label>
-        <input 
-          onChange={handleChange('name')} 
-          type="text" 
-          className='form-control'
-          value={name}
-        />
-      </div>
       <div className="form-group">
         <label className='text-muted'>Email</label>
         <input 
@@ -72,18 +65,24 @@ function Signup() {
     <div className="alert alert-danger" style={{display: error ? '' : 'none'}}>{error}</div>
   )
 
-  const showSuccess = () => (
-    <div className="alert alert-info" style={{display: success ? '' : 'none'}}>New account is created. Please Signin <Link to='/signin'>Signin</Link></div>
+  const showLoading = () => (
+    loading && (<div className='alert alert-info'><h2>Loading...</h2></div>)
   )
 
+  const redirectUser = () => {
+    if(redirectToReferrer) {
+      return <Redirect to='/' />
+    }
+  }
+
   return (
-    <Layout title='Signup' description='Signup to Node React E-commerce App' className='container col-md-8 offset-md-2'>
-      {showSuccess()}
+    <Layout title='Signin' description='Signin to Node React E-commerce App' className='container col-md-8 offset-md-2'>
+      {showLoading()}
       {showError()}
-      {signUpForm()}
-      {JSON.stringify(values)}
+      {signInForm()}
+      {redirectUser()}
     </Layout>
   )
 }
 
-export default Signup
+export default Signin
