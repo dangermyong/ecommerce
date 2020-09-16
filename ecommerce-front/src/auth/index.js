@@ -60,7 +60,9 @@ export const isAuthenticated = () => {
     return false
   }
   if (localStorage.getItem('jwt')) {
-    return JSON.parse(localStorage.getItem('jwt'))
+    const parsedJwt = JSON.parse(localStorage.getItem('jwt'))
+    console.log('parsed jwt : ', parsedJwt)
+    return parsedJwt
   } else {
     return false
   }
